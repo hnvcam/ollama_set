@@ -1,0 +1,49 @@
+# Using open-webui with bundled ollama 
+# https://github.com/open-webui/open-webui
+services:
+  ollama:
+    image: ollama/ollama
+    volumes:
+        - ./ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+    ports:
+      - "11434:11434"
+      
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:cuda
+    environment:
+      WEBUI_AUTH: False
+      ENABLE_RAG_WEB_SEARCH: True
+      RAG_WEB_SEARCH_ENGINE: "searxng"
+      RAG_WEB_SEARCH_RESULT_COUNT: 3
+      RAG_WEB_SEARCH_CONCURRENT_REQUESTS: 10
+      SEARXNG_QUERY_URL: "http://searxng:8080/search?q=<query>"
+      AUTOMATIC1111_BASE_URL: "http://host.docker.internal:7860/"
+      ENABLE_IMAGE_GENERATION: True
+    volumes:
+        - ./open-webui:/app/backend/data
+    extra_hosts:
+        - host.docker.internal:host-gateway
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+    ports:
+      - "80:8080"
+  
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    #ports:
+    #  - "8080:8080"
+    volumes:
+      - ./searxng:/etc/searxng
