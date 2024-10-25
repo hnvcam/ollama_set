@@ -19,3 +19,9 @@ services:
               #device_ids: ['0', '1'] # Select a gpu, or
               count: all
               capabilities: [gpu]
+volumes:
+    openedai-voices:
+        name: openedai-voices
+    openedai-config:
+        name: openedai-config
+    
